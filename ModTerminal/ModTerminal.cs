@@ -47,6 +47,10 @@ namespace ModTerminal
 
             DebugMod.DebugMod.AddToKeyBindList(typeof(DebugHooks));
 
+            CommandTable.RegisterCommand(new Command("help", CommandTable.HelpCommand));
+            CommandTable.RegisterCommand(new Command("givecharm", BuiltInCommands.GiveCharm));
+            CommandTable.RegisterCommand(new Command("givecharms", BuiltInCommands.GiveCharms));
+
             Log("Initialized");
         }
 

@@ -1,5 +1,6 @@
 ﻿using MagicUI.Core;
 using MagicUI.Elements;
+using System;
 using System.Linq;
 
 namespace ModTerminal
@@ -60,7 +61,28 @@ namespace ModTerminal
             if (!string.IsNullOrWhiteSpace(text))
             {
                 Write("> " + text);
-                // todo: do commands
+                CommandInvocation invocation = CommandParser.ParseCommand(text);
+                Command? command = CommandTable.GetCommand(invocation.Name);
+                if (command == null)
+                {
+                    Write($"Error: {invocation.Name} is not a known command");
+                }
+                else
+                {
+                    try
+                    {
+                        string? result = command.Execute(invocation.Slots);
+                        if (result != null)
+                        {
+                            Write(result);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ModTerminalMod.Instance.LogError(ex);
+                        Write($"Unexpected error executing {invocation.Name}");
+                    }
+                }
             }
         }
 

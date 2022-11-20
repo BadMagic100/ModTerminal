@@ -66,8 +66,11 @@ namespace ModTerminal
                     throw new ArgumentException("Array parameters are only legal in the final position (e.g. params arrays)",
                         nameof(exec));
                 }
-                if ((param.ParameterType.IsArray && !convertibleTypes.Contains(param.ParameterType.GetElementType())) 
-                    || !convertibleTypes.Contains(param.ParameterType))
+                if (param.ParameterType.IsArray && !convertibleTypes.Contains(param.ParameterType.GetElementType()))
+                {
+                    throw new ArgumentException($"{param.Name} is not a convertible type", nameof(exec));
+                }
+                if (!param.ParameterType.IsArray && !convertibleTypes.Contains(param.ParameterType))
                 {
                     throw new ArgumentException($"{param.Name} is not a convertible type", nameof(exec));
                 }
@@ -140,9 +143,11 @@ namespace ModTerminal
                     if (args[argIndex] == null)
                     {
                         args[argIndex] = Array.CreateInstance(targetType, slots.Count - parameters.Length + 1);
+                        ModTerminalMod.Instance.LogDebug($"Length: {slots.Count - parameters.Length + 1}");
                     }
                     Array arr = (Array)args[argIndex];
-                    int pos = slot.Index - parameters.Length + arr.Length;
+                    int pos = slot.Index - argIndex;
+                    ModTerminalMod.Instance.LogDebug($"{slot.Name} at {slot.Index} - pos: {pos}");
                     arr.SetValue(slotValue, pos);
                 }
                 else
