@@ -50,6 +50,8 @@ namespace ModTerminal
             CommandTable.RegisterCommand(new Command("help", CommandTable.HelpCommand));
             CommandTable.RegisterCommand(new Command("givecharm", BuiltInCommands.GiveCharm));
             CommandTable.RegisterCommand(new Command("givecharms", BuiltInCommands.GiveCharms));
+            CommandTable.RegisterCommand(new Command("givegeo", BuiltInCommands.GiveGeo));
+            CommandTable.RegisterCommand(new Command("giveessence", BuiltInCommands.GiveEssence));
 
             Log("Initialized");
         }

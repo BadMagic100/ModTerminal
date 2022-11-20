@@ -122,9 +122,20 @@ namespace ModTerminal
             object[] args = new object[parameters.Length];
             foreach (SlotInfo slot in slots)
             {
-                ParameterInfo param = slot.Name == null
-                    ? parameters[Math.Min(parameters.Length - 1, slot.Index)]
-                    : paramLookup[slot.Name];
+                ParameterInfo param;
+                if (slot.Name == null)
+                {
+                    param = parameters[Math.Min(parameters.Length - 1, slot.Index)];
+                }
+                else
+                {
+                    if (!paramLookup.TryGetValue(slot.Name, out param))
+                    {
+                        return $"Error: no named parameter matched the slot {slot.Name}. " +
+                            $"Use the 'help {Name}' command to see the correct parameters";
+                    }
+                }
+
                 Type targetType = param.ParameterType.IsArray ? param.ParameterType.GetElementType() : param.ParameterType;
                 object slotValue;
                 try
