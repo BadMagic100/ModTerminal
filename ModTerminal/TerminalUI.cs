@@ -2,12 +2,56 @@
 using MagicUI.Elements;
 using System;
 using System.Linq;
+using UnityEngine.UI;
 
 namespace ModTerminal
 {
     internal class TerminalUI
     {
         private const int MAX_LINES = 10;
+
+        private static void SetEnabledHeroActions(bool enabled)
+        {
+            var inputHandler = InputHandler.Instance;
+            if (inputHandler == null)
+            {
+                return;
+            }
+
+            var heroActions = inputHandler.inputActions;
+            if (heroActions == null)
+            {
+                return;
+            }
+
+            // Disable all input actions for the hero, except for the pause actions
+            // which we use to listen for closing the chat again
+            heroActions.left.Enabled = enabled;
+            heroActions.right.Enabled = enabled;
+            heroActions.up.Enabled = enabled;
+            heroActions.down.Enabled = enabled;
+            heroActions.menuSubmit.Enabled = enabled;
+            heroActions.menuCancel.Enabled = enabled;
+            heroActions.rs_up.Enabled = enabled;
+            heroActions.rs_down.Enabled = enabled;
+            heroActions.rs_left.Enabled = enabled;
+            heroActions.rs_right.Enabled = enabled;
+            heroActions.jump.Enabled = enabled;
+            heroActions.evade.Enabled = enabled;
+            heroActions.dash.Enabled = enabled;
+            heroActions.superDash.Enabled = enabled;
+            heroActions.dreamNail.Enabled = enabled;
+            heroActions.attack.Enabled = enabled;
+            heroActions.cast.Enabled = enabled;
+            heroActions.focus.Enabled = enabled;
+            heroActions.quickMap.Enabled = enabled;
+            heroActions.quickCast.Enabled = enabled;
+            heroActions.textSpeedup.Enabled = enabled;
+            heroActions.skipCutscene.Enabled = enabled;
+            heroActions.openInventory.Enabled = enabled;
+            heroActions.paneRight.Enabled = enabled;
+            heroActions.paneLeft.Enabled = enabled;
+        }
 
         private static TerminalUI? _instance = null;
         public static TerminalUI Instance => _instance ??= new();
@@ -84,12 +128,19 @@ namespace ModTerminal
                     }
                 }
             }
+            sender.GameObject.GetComponent<InputField>().ActivateInputField();
+            sender.GetSelectable().Select();
         }
 
         public void Clear()
         {
             input.Text = "";
             output.Text = "";
+        }
+
+        public void ClearInput()
+        {
+            input.Text = "";
         }
 
         private void Write(string content)
@@ -116,6 +167,7 @@ namespace ModTerminal
                 input.GetSelectable().Select();
                 heldHotkeySetting = BenchwarpInterop.Hotkeys;
                 BenchwarpInterop.Hotkeys = false;
+                SetEnabledHeroActions(false);
             }
         }
 
@@ -123,12 +175,14 @@ namespace ModTerminal
         {
             if (isEnabled)
             {
+                ClearInput();
                 isActive = false;
                 if (heldHotkeySetting != null)
                 {
                     BenchwarpInterop.Hotkeys = heldHotkeySetting.Value;
                     heldHotkeySetting = null;
                 }
+                SetEnabledHeroActions(true);
             }
         }
 

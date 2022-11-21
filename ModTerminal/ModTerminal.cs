@@ -48,10 +48,15 @@ namespace ModTerminal
             DebugMod.DebugMod.AddToKeyBindList(typeof(DebugHooks));
 
             CommandTable.RegisterCommand(new Command("help", CommandTable.HelpCommand));
+            CommandTable.RegisterCommand(new Command("listcommands", CommandTable.ListCommand));
+            CommandTable.RegisterCommand(new Command("clear", () => TerminalUI.Instance.Clear()));
             CommandTable.RegisterCommand(new Command("givecharm", BuiltInCommands.GiveCharm));
             CommandTable.RegisterCommand(new Command("givecharms", BuiltInCommands.GiveCharms));
             CommandTable.RegisterCommand(new Command("givegeo", BuiltInCommands.GiveGeo));
             CommandTable.RegisterCommand(new Command("giveessence", BuiltInCommands.GiveEssence));
+            CommandTable.RegisterCommand(new Command("getpd", BuiltInCommands.GetPlayerData));
+            CommandTable.RegisterCommand(new Command("setpd", BuiltInCommands.SetPlayerData));
+            CommandTable.RegisterCommand(new Command("setpdvector", BuiltInCommands.SetPlayerDataVector3));
 
             Log("Initialized");
         }
@@ -65,16 +70,16 @@ namespace ModTerminal
         private IEnumerator OnExitedFile(On.QuitToMenu.orig_Start orig, QuitToMenu self)
         {
             IEnumerator temp = orig(self);
-            TerminalUI.Instance.Hide();
             TerminalUI.Instance.Clear();
+            TerminalUI.Instance.Hide();
             TerminalUI.Instance.Disable();
             return temp;
         }
 
         private void OnGotEnding(On.GameCompletionScreen.orig_Start orig, GameCompletionScreen self)
         {
-            TerminalUI.Instance.Hide();
             TerminalUI.Instance.Clear();
+            TerminalUI.Instance.Hide();
             TerminalUI.Instance.Disable();
             orig(self);
         }

@@ -66,28 +66,38 @@ namespace ModTerminal
                     throw new ArgumentException("Array parameters are only legal in the final position (e.g. params arrays)",
                         nameof(exec));
                 }
-                if (param.ParameterType.IsArray && !convertibleTypes.Contains(param.ParameterType.GetElementType()))
-                {
-                    throw new ArgumentException($"{param.Name} is not a convertible type", nameof(exec));
-                }
-                if (!param.ParameterType.IsArray && !convertibleTypes.Contains(param.ParameterType))
+                Type targetType = EvaluateConversionType(param.ParameterType);
+                if (!targetType.IsEnum && !convertibleTypes.Contains(targetType))
                 {
                     throw new ArgumentException($"{param.Name} is not a convertible type", nameof(exec));
                 }
             }
         }
 
+        private Type EvaluateConversionType(Type t)
+        {
+            if (t.IsArray)
+            {
+                return EvaluateConversionType(t.GetElementType());
+            }
+            return Nullable.GetUnderlyingType(t) ?? t;
+        }
+
         internal string? Execute(IReadOnlyList<SlotInfo> slots)
         {
             ParameterInfo[] parameters = Method.GetParameters();
             Dictionary<string, ParameterInfo> paramLookup = parameters.ToDictionary(p => p.Name);
+
             // validate slots
             bool encounteredNamedArg = false;
             foreach (SlotInfo slot in slots)
             {
-                if (slot.Name == null && encounteredNamedArg)
+                if (slot.Name == null)
                 {
-                    return $"Error at {slot.Value}: all indexed parameters must come before named parameters";
+                    if (encounteredNamedArg)
+                    { 
+                        return $"Error at {slot.Value}: all indexed parameters must come before named parameters";
+                    }
                 }
                 if (slot.Name != null)
                 {
@@ -95,7 +105,7 @@ namespace ModTerminal
                 }
             }
 
-            if (parameters.Last().ParameterType.IsArray)
+            if (parameters.Length > 0 && parameters.Last().ParameterType.IsArray)
             {
                 if (encounteredNamedArg)
                 {
@@ -110,7 +120,16 @@ namespace ModTerminal
             {
                 if (slots.Count < parameters.Length)
                 {
-                    return $"Error: not enough parameters for {Name}. Use the 'help {Name}' command to see the correct parameters";
+                    // check for valid defaults (only valid for non-params parameters)
+                    int unnamedSlots = slots.Where(s => s.Name == null).Count();
+                    HashSet<string> namedSlots = new(slots.Where(s => s.Name != null).Select(s => s.Name!));
+                    for (int i = unnamedSlots; i < parameters.Length; i++)
+                    {
+                        if (!parameters[i].HasDefaultValue && !namedSlots.Contains(parameters[i].Name))
+                        {
+                            return $"Error: no value provided for parameter {parameters[i].Name} without a default value";
+                        }
+                    }
                 }
                 if (slots.Count > parameters.Length)
                 {
@@ -136,11 +155,13 @@ namespace ModTerminal
                     }
                 }
 
-                Type targetType = param.ParameterType.IsArray ? param.ParameterType.GetElementType() : param.ParameterType;
+                Type targetType = EvaluateConversionType(param.ParameterType);
                 object slotValue;
                 try
                 {
-                    slotValue = Convert.ChangeType(slot.Value, targetType);
+                    slotValue = targetType.IsEnum 
+                        ? Enum.Parse(targetType, slot.Value) 
+                        : Convert.ChangeType(slot.Value, targetType);
                 }
                 catch
                 {
