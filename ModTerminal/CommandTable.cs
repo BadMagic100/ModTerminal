@@ -52,9 +52,21 @@ namespace ModTerminal
             return b.ToString();
         }
 
-        [HelpDocumentation("Displays help documentation for the specified command.")]
-        internal static string HelpCommand(string command)
+        [HelpDocumentation("Displays help documentation for the specified command, or with no parameters, "
+            + "displays general help documentation for the mod.")]
+        internal static string HelpCommand(string? command = null)
         {
+            if (command == null)
+            {
+                return "Use 'listcommands' to see available commands, and 'help <command>' to see help for a given command. "
+                    + "Commands may take any number of parameters as specified by their help documentation. Command parameters "
+                    + "can be specified in order, or by specifying the parameters in 'name=value' syntax. Ordered parameters cannot "
+                    + "be used after a named parameter has been used. Some parameters take a variable amount of parameters. For "
+                    + "these commands, the last parameter is listed as an array in the help documentation and you can provide any "
+                    + "number of values, including zero, by adding additional ordered parameters. Named parameters cannot be used "
+                    + "for these commands.";
+            }
+
             Command? c = GetCommand(command);
             if (c == null)
             {
