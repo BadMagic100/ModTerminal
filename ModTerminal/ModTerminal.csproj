@@ -45,6 +45,10 @@
     <None Remove="build.yml" />
     <None Remove="dependabot.yml" />
     <None Remove="README.md" />
+    <None Remove="Resources\Background.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Background.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">

@@ -28,7 +28,10 @@ namespace ModTerminal
             return null;
         }
 
-        internal static string ListCommand(uint page = 0)
+        [HelpDocumentation("Lists available commands.")]
+        internal static string ListCommand(
+            [HelpDocumentation("The zero-indexed page number to start on.")] uint page = 0
+            )
         {
             const int PAGE_SIZE = 5;
             int first = (int)page * PAGE_SIZE + 1;
@@ -49,15 +52,22 @@ namespace ModTerminal
             return b.ToString();
         }
 
-        internal static string HelpCommand(string commandName)
+        [HelpDocumentation("Displays help documentation for the specified command.")]
+        internal static string HelpCommand(string command)
         {
-            Command? command = GetCommand(commandName);
-            if (command == null)
+            Command? c = GetCommand(command);
+            if (c == null)
             {
-                return $"Cannot get help because {commandName} is not known command";
+                return $"Cannot get help because {command} is not known command";
             }
             StringBuilder b = new();
-            ParameterInfo[] parameters = command.Method.GetParameters();
+            HelpDocumentationAttribute commandDoc = c.Method.GetCustomAttribute<HelpDocumentationAttribute>();
+            if (commandDoc != null)
+            {
+                b.AppendLine(commandDoc.Docs);
+            }
+
+            ParameterInfo[] parameters = c.Method.GetParameters();
             if (parameters.Length == 0)
             {
                 b.AppendLine("This command does not take any parameters");
@@ -65,12 +75,18 @@ namespace ModTerminal
             else
             {
                 b.AppendLine("Parameters:");
-                foreach (ParameterInfo param in command.Method.GetParameters())
+                foreach (ParameterInfo param in c.Method.GetParameters())
                 {
                     b.Append("  - ");
                     b.Append(param.Name);
                     b.Append(": ");
                     b.Append(GetFriendlyTypeName(param));
+                    HelpDocumentationAttribute? paramDoc = param.GetCustomAttribute<HelpDocumentationAttribute>();
+                    if (paramDoc != null)
+                    {
+                        b.Append(". ");
+                        b.Append(paramDoc.Docs);
+                    }
                     b.AppendLine();
                 }
             }
@@ -104,7 +120,7 @@ namespace ModTerminal
             }
             if (type.IsEnum)
             {
-                return "One of: " + string.Join(", ", Enum.GetNames(type));
+                return "one of " + string.Join(", ", Enum.GetNames(type));
             }
 
             Type nullableType = Nullable.GetUnderlyingType(type);

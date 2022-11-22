@@ -1,5 +1,6 @@
 ﻿using MagicUI.Core;
 using MagicUI.Elements;
+using MagicUI.Graphics;
 using System;
 using System.Linq;
 using UnityEngine.UI;
@@ -9,6 +10,7 @@ namespace ModTerminal
     internal class TerminalUI
     {
         private const int MAX_LINES = 10;
+        private static readonly TextureLoader textureLoader = new(typeof(TerminalUI).Assembly, "ModTerminal.Resources");
 
         private static void SetEnabledHeroActions(bool enabled)
         {
@@ -69,6 +71,14 @@ namespace ModTerminal
             layout = new(true, "ModTerminal UI");
             layout.VisibilityCondition = () => isActive;
 
+            Panel p = new(layout, textureLoader.GetTexture("Background.png").ToSprite(), "ModTerminal Background")
+            {
+                Borders = new Padding(5),
+                Padding = new Padding(10, 50),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Bottom
+            };
+
             input = new(layout, "ModTerminal Command Entry")
             {
                 Font = UI.Perpetua,
@@ -84,12 +94,9 @@ namespace ModTerminal
                 MaxWidth = UI.Screen.width / 3
             };
 
-            new StackLayout(layout, "ModTerminal Element Stack")
+            p.Child = new StackLayout(layout, "ModTerminal Element Stack")
             {
-                Padding = new(10, 50),
                 Spacing = 5,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Bottom,
                 Children =
                 {
                     output,

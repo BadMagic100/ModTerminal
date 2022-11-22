@@ -49,7 +49,7 @@ namespace ModTerminal
 
             CommandTable.RegisterCommand(new Command("help", CommandTable.HelpCommand));
             CommandTable.RegisterCommand(new Command("listcommands", CommandTable.ListCommand));
-            CommandTable.RegisterCommand(new Command("clear", () => TerminalUI.Instance.Clear()));
+            CommandTable.RegisterCommand(new Command("clear", [HelpDocumentation("Clears the terminal.")] () => TerminalUI.Instance.Clear()));
             CommandTable.RegisterCommand(new Command("givecharm", BuiltInCommands.GiveCharm));
             CommandTable.RegisterCommand(new Command("givecharms", BuiltInCommands.GiveCharms));
             CommandTable.RegisterCommand(new Command("givegeo", BuiltInCommands.GiveGeo));
