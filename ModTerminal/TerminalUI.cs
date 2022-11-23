@@ -65,6 +65,7 @@ namespace ModTerminal
         private bool isEnabled = false;
 
         private bool? heldHotkeySetting;
+        private bool? heldLockKeybind;
 
         private TerminalUI()
         {
@@ -174,6 +175,8 @@ namespace ModTerminal
                 input.GetSelectable().Select();
                 heldHotkeySetting = BenchwarpInterop.Hotkeys;
                 BenchwarpInterop.Hotkeys = false;
+                heldLockKeybind = DebugMod.DebugMod.KeyBindLock;
+                DebugMod.DebugMod.KeyBindLock = true;
                 SetEnabledHeroActions(false);
             }
         }
@@ -188,6 +191,11 @@ namespace ModTerminal
                 {
                     BenchwarpInterop.Hotkeys = heldHotkeySetting.Value;
                     heldHotkeySetting = null;
+                }
+                if (heldLockKeybind != null)
+                {
+                    DebugMod.DebugMod.KeyBindLock = heldLockKeybind.Value;
+                    heldLockKeybind = null;
                 }
                 SetEnabledHeroActions(true);
             }

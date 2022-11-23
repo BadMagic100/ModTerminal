@@ -7,7 +7,7 @@ namespace ModTerminal
 {
     internal class DebugHooks
     {
-        [BindableMethod(name = "Toggle Terminal", category = "Misc")]
+        [BindableMethod(name = "Toggle Terminal", category = "Misc", allowLock = false)]
         public static void ToggleTerminal()
         {
             TerminalUI.Instance.Toggle();
@@ -41,11 +41,12 @@ namespace ModTerminal
         {
             Log("Initializing");
 
+            // if debug doesn't exist, let this die and don't hook anything else
+            DebugMod.DebugMod.AddToKeyBindList(typeof(DebugHooks));
+
             On.HeroController.Awake += OnEnteredFile;
             On.QuitToMenu.Start += OnExitedFile;
             On.GameCompletionScreen.Start += OnGotEnding;
-
-            DebugMod.DebugMod.AddToKeyBindList(typeof(DebugHooks));
 
             CommandTable.RegisterCommand(new Command("help", CommandTable.HelpCommand));
             CommandTable.RegisterCommand(new Command("listcommands", CommandTable.ListCommand));
