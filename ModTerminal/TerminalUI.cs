@@ -3,7 +3,6 @@ using MagicUI.Elements;
 using MagicUI.Graphics;
 using System;
 using System.Linq;
-using UnityEngine.UI;
 
 namespace ModTerminal
 {
@@ -136,8 +135,7 @@ namespace ModTerminal
                     }
                 }
             }
-            sender.GameObject.GetComponent<InputField>().ActivateInputField();
-            sender.GetSelectable().Select();
+            sender.SelectAndActivate();
         }
 
         public void Clear()
@@ -172,7 +170,7 @@ namespace ModTerminal
             {
                 isActive = true;
                 layout.ForceInteractivityRefresh();
-                input.GetSelectable().Select();
+                input.SelectAndActivate();
                 heldHotkeySetting = BenchwarpInterop.Hotkeys;
                 BenchwarpInterop.Hotkeys = false;
                 heldLockKeybind = DebugMod.DebugMod.KeyBindLock;
@@ -186,6 +184,7 @@ namespace ModTerminal
             if (isEnabled)
             {
                 ClearInput();
+                input.Deactivate();
                 isActive = false;
                 if (heldHotkeySetting != null)
                 {
