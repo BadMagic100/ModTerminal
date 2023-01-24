@@ -8,7 +8,7 @@ namespace ModTerminal
 {
     internal class TerminalUI
     {
-        private const int MAX_LINES = 10;
+        private const int MAX_LINES = 20;
         private static readonly TextureLoader textureLoader = new(typeof(TerminalUI).Assembly, "ModTerminal.Resources");
 
         private static void SetEnabledHeroActions(bool enabled)

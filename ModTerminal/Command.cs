@@ -139,6 +139,14 @@ namespace ModTerminal
 
             // match slots to actual params
             object[] args = new object[parameters.Length];
+            // populate defaults; they will get overridden below if needed
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i].HasDefaultValue)
+                {
+                    args[i] = parameters[i].DefaultValue;
+                }
+            }
             foreach (SlotInfo slot in slots)
             {
                 ParameterInfo param;
