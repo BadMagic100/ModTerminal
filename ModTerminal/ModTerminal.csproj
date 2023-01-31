@@ -24,9 +24,9 @@
     <MakeDir Directories="$(ExportDir)/" />
     <MakeDir Directories="$(ExportDir)/zip/" />
     <MakeDir Condition="!Exists('$(HollowKnightRefs)/Mods/$(TargetName)/')" Directories="$(HollowKnightRefs)/Mods/$(TargetName)/" />
-    <Copy SourceFiles="$(TargetPath);$(TargetDir)/$(TargetName).pdb" DestinationFolder="$(HollowKnightRefs)/Mods/$(TargetName)/" />
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)/$(TargetName).pdb;$(TargetDir)/Nito.Collections.Deque.dll" DestinationFolder="$(HollowKnightRefs)/Mods/$(TargetName)/" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ExportDir)/" />
-    <Copy SourceFiles="$(SolutionDir)/README.md;$(TargetPath);$(TargetDir)/$(TargetName).pdb" DestinationFolder="$(ExportDir)/zip/" />
+    <Copy SourceFiles="$(SolutionDir)/README.md;$(TargetPath);$(TargetDir)/$(TargetName).pdb;$(TargetDir)/Nito.Collections.Deque.dll" DestinationFolder="$(ExportDir)/zip/" />
     <ZipDirectory SourceDirectory="$(ExportDir)/zip/" DestinationFile="$(ExportDir)/$(TargetName).zip" />
     <RemoveDir Directories="$(ExportDir)/zip/" />
     <GetFileHash Files="$(ExportDir)/$(TargetName).zip" Algorithm="SHA256">
@@ -332,6 +332,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Nito.Collections.Deque" Version="1.1.1" />
     <PackageReference Include="PolySharp" Version="1.8.0" />
   </ItemGroup>
   <ItemGroup>

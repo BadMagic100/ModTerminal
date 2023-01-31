@@ -66,6 +66,8 @@ namespace ModTerminal
         private bool? heldHotkeySetting;
         private bool? heldLockKeybind;
 
+        private CommandBuffer commandBuffer = new();
+
         private TerminalUI()
         {
             layout = new(true, "ModTerminal UI");
@@ -86,6 +88,10 @@ namespace ModTerminal
                 MinWidth = UI.Screen.width / 3
             };
             input.TextEditFinished += OnCommand;
+            ArrowKeyWatcher arrowWatcher = layout.Canvas.AddComponent<ArrowKeyWatcher>();
+            arrowWatcher.selectableToWatch = input.GetSelectable();
+            arrowWatcher.OnUp += OnArrowUp;
+            arrowWatcher.OnDown += OnArrowDown;
 
             output = new(layout, "ModTerminal Console")
             {
@@ -105,10 +111,31 @@ namespace ModTerminal
             };
         }
 
+        private void OnArrowUp()
+        {
+            if (isActive)
+            {
+                if (commandBuffer.IsAtBottom)
+                {
+                    commandBuffer.Hold(input.Text);
+                }
+                input.Text = commandBuffer.GoUp();
+            }
+        }
+
+        private void OnArrowDown()
+        {
+            if (isActive)
+            {
+                input.Text = commandBuffer.GoDown();
+            }
+        }
+
         private void OnCommand(TextInput sender, string text)
         {
             sender.Text = "";
             text = text.Trim();
+            commandBuffer.Add(text);
             if (!string.IsNullOrWhiteSpace(text))
             {
                 Write("> " + text);
@@ -184,6 +211,7 @@ namespace ModTerminal
             if (isEnabled)
             {
                 ClearInput();
+                commandBuffer.ResetNavigation();
                 input.Deactivate();
                 isActive = false;
                 if (heldHotkeySetting != null)
