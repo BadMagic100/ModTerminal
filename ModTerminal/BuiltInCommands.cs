@@ -4,7 +4,15 @@ namespace ModTerminal
 {
     public enum PDType
     {
-        Int, Float, Bool, String, Vector
+        @int, @float, @bool, @string, @vector
+    }
+
+    public enum RelicType
+    {
+        journal = 1,
+        seal = 2,
+        idol = 3,
+        egg = 4
     }
 
     internal static class BuiltInCommands
@@ -61,20 +69,33 @@ namespace ModTerminal
             }
         }
 
+        [HelpDocumentation("Gives the player the specified amount of a given relic.")]
+        public static void GiveRelic(RelicType type, int amount = 1)
+        {
+            int trinketNum = (int)type;
+            string trinket = "trinket" + trinketNum;
+            string foundTrinket = "foundTrinket" + trinketNum;
+            string noTrinket = "noTrinket" + trinketNum;
+
+            PlayerData.instance.IntAdd(trinket, amount);
+            PlayerData.instance.SetBool(foundTrinket, true);
+            PlayerData.instance.SetBool(noTrinket, false);
+        }
+
         [HelpDocumentation("Displays the PlayerData variable of the given type and name.")]
         public static string GetPlayerData(PDType type, string name)
         {
             switch (type)
             {
-                case PDType.Int:
+                case PDType.@int:
                     return PlayerData.instance.GetInt(name).ToString();
-                case PDType.Float:
+                case PDType.@float:
                     return PlayerData.instance.GetFloat(name).ToString();
-                case PDType.Bool:
+                case PDType.@bool:
                     return PlayerData.instance.GetBool(name).ToString();
-                case PDType.String:
+                case PDType.@string:
                     return PlayerData.instance.GetString(name);
-                case PDType.Vector:
+                case PDType.@vector:
                     return PlayerData.instance.GetVector3(name).ToString();
                 default:
                     return "Invalid type";
