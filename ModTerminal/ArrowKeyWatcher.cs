@@ -9,10 +9,10 @@ namespace ModTerminal
     {
         public Selectable? selectableToWatch;
 
-        public Action? OnUp;
-        public Action? OnDown;
-        public Action? OnLeft;
-        public Action? OnRight;
+        public event Action? OnUp;
+        public event Action? OnDown;
+        public event Action? OnLeft;
+        public event Action? OnRight;
 
         private void Update()
         {

@@ -53,7 +53,7 @@ namespace ModTerminal
         }
 
         [HelpDocumentation("Displays help documentation for the specified command, or with no parameters, "
-            + "displays general help documentation for the mod.")]
+            + "displays general help documentation.")]
         internal static string HelpCommand(string? command = null)
         {
             if (command == null)
