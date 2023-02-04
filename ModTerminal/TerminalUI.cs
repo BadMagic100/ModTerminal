@@ -2,7 +2,10 @@
 using MagicUI.Elements;
 using MagicUI.Graphics;
 using System;
+using System.IO;
 using System.Linq;
+using System.Text;
+using UnityEngine;
 
 namespace ModTerminal
 {
@@ -67,6 +70,7 @@ namespace ModTerminal
         private bool? heldLockKeybind;
 
         private CommandBuffer commandBuffer = new();
+        private StreamWriter? fileLogger;
 
         private TerminalUI()
         {
@@ -165,6 +169,7 @@ namespace ModTerminal
             sender.SelectAndActivate();
         }
 
+        [HelpDocumentation("Clears the terminal.")]
         public void Clear()
         {
             input.Text = "";
@@ -178,6 +183,11 @@ namespace ModTerminal
 
         private void Write(string content)
         {
+            if (fileLogger != null)
+            {
+                fileLogger.WriteLine(content);
+            }
+
             string next = output.Text + '\n' + content.Trim();
             string[] lines = next.Split('\n');
             int diff = lines.Length - MAX_LINES;
@@ -206,6 +216,7 @@ namespace ModTerminal
             }
         }
 
+        [HelpDocumentation("Closes the terminal.")]
         public void Hide()
         {
             if (isEnabled)
@@ -252,6 +263,37 @@ namespace ModTerminal
         {
             Hide();
             isEnabled = false;
+        }
+
+        [HelpDocumentation("Starts logging terminal content to a file.")]
+        public string StartLogging(
+            string fileName, 
+            bool append = false
+        )
+        {
+            if (fileLogger == null)
+            {
+                string path = Path.Combine(Application.persistentDataPath, fileName);
+                string dir = Path.GetDirectoryName(path);
+                Directory.CreateDirectory(dir);
+                FileMode mode = append ? FileMode.Append : FileMode.Create;
+                FileStream fs = new(path, mode, FileAccess.Write, FileShare.ReadWrite);
+                fileLogger = new(fs, Encoding.UTF8) { AutoFlush = true };
+                return $"Started logging to {path}";
+            }
+            return "Logging is already in progress.";
+        }
+
+        [HelpDocumentation("Stops logging terminal content to a file.")]
+        public string StopLogging()
+        {
+            if (fileLogger != null)
+            {
+                fileLogger.Close();
+                fileLogger = null;
+                return "Logging was stopped successfully.";
+            }
+            return "Logging was never started.";
         }
     }
 }
