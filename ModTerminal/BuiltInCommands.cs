@@ -51,9 +51,10 @@ namespace ModTerminal
         }
 
         [HelpDocumentation("Gives the player the specified amount of essence.")]
-        public static void GiveEssence(int amount)
+        public static string GiveEssence(int amount)
         {
             PlayerData.instance.IntAdd(nameof(PlayerData.dreamOrbs), amount);
+            return $"Successfully given {amount} essence";
         }
 
         [HelpDocumentation("Gives the player the specified amount of geo.")]
@@ -70,7 +71,7 @@ namespace ModTerminal
         }
 
         [HelpDocumentation("Gives the player the specified amount of a given relic.")]
-        public static void GiveRelic(RelicType type, int amount = 1)
+        public static string GiveRelic(RelicType type, int amount = 1)
         {
             int trinketNum = (int)type;
             string trinket = "trinket" + trinketNum;
@@ -80,6 +81,8 @@ namespace ModTerminal
             PlayerData.instance.IntAdd(trinket, amount);
             PlayerData.instance.SetBool(foundTrinket, true);
             PlayerData.instance.SetBool(noTrinket, false);
+
+            return $"Successfully given {amount}x {type}";
         }
 
         [HelpDocumentation("Displays the PlayerData variable of the given type and name.")]

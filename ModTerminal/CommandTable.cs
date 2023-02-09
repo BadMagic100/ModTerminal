@@ -6,20 +6,60 @@ using System.Text;
 
 namespace ModTerminal
 {
-    public static class CommandTable
+    public class CommandTable
     {
-        private static Dictionary<string, Command> commands = new();
+        private Dictionary<string, Command> commands = new();
+        private Dictionary<string, CommandTable> commandGroups = new();
+        public string GeneralHelp { get; }
 
-        public static void RegisterCommand(Command command)
+        public string Prefix { get; private set; } = "";
+
+        public HashSet<string> RegisteredCommandAndGroupNames => new(commands.Keys.Concat(commandGroups.Keys));
+
+        public CommandTable(string generalHelp) 
+        {
+            GeneralHelp = generalHelp;
+            RegisterCommand(new Command("help", HelpCommand));
+            RegisterCommand(new Command("listcommands", ListCommand));
+        }
+
+        public void RegisterCommand(Command command)
         {
             if (commands.ContainsKey(command.Name))
             {
                 throw new ArgumentException($"A command with the name {command.Name} is already registered", nameof(command));
             }
+            if (commandGroups.ContainsKey(command.Name))
+            {
+                throw new ArgumentException($"A command group with the name {command.Name} is already registered", nameof(command));
+            }
             commands[command.Name] = command;
         }
 
-        public static Command? GetCommand(string name)
+        public void RegisterGroup(string groupName, CommandTable commandTable)
+        {
+            if (commands.ContainsKey(groupName))
+            {
+                throw new ArgumentException($"A command with the name {groupName} is already registered", nameof(groupName));
+            }
+            if (commandGroups.ContainsKey(groupName))
+            {
+                throw new ArgumentException($"A command group with the name {groupName} is already registered", nameof(groupName));
+            }
+            commandTable.Prefix = Prefix + groupName + " ";
+            commandGroups[groupName] = commandTable;
+        }
+
+        public CommandTable? GetGroup(string name)
+        {
+            if (commandGroups.TryGetValue(name, out CommandTable group))
+            {
+                return group;
+            }
+            return null;
+        }
+
+        public Command? GetCommand(string name)
         {
             if (commands.TryGetValue(name, out Command command))
             {
@@ -29,7 +69,7 @@ namespace ModTerminal
         }
 
         [HelpDocumentation("Lists available commands.")]
-        internal static string ListCommand(
+        private string ListCommand(
             [HelpDocumentation("The zero-indexed page number to start on.")] uint page = 0
             )
         {
@@ -46,7 +86,7 @@ namespace ModTerminal
             foreach (string commandName in commands.Keys.OrderBy(k => k).Skip(first - 1).Take(PAGE_SIZE)) 
             {
                 b.Append("  - ");
-                b.Append(commandName);
+                b.Append($"{Prefix}{commandName}");
                 b.AppendLine();
             }
             return b.ToString();
@@ -54,23 +94,23 @@ namespace ModTerminal
 
         [HelpDocumentation("Displays help documentation for the specified command, or with no parameters, "
             + "displays general help documentation.")]
-        internal static string HelpCommand(string? command = null)
+        private string HelpCommand(string? command = null)
         {
             if (command == null)
             {
-                return "Use 'listcommands' to see available commands, and 'help <command>' to see help for a given command. "
-                    + "Commands may take any number of parameters as specified by their help documentation. Command parameters "
-                    + "can be specified in order, or by specifying the parameters in 'name=value' syntax. Ordered parameters cannot "
-                    + "be used after a named parameter has been used. Some parameters take a variable amount of parameters. For "
-                    + "these commands, the last parameter is listed as an array in the help documentation and you can provide any "
-                    + "number of values, including zero, by adding additional ordered parameters. Named parameters cannot be used "
-                    + "for these commands.";
+                return GeneralHelp;
+            }
+
+            CommandTable? ct = GetGroup(command);
+            if (ct != null)
+            {
+                return ct.GeneralHelp;
             }
 
             Command? c = GetCommand(command);
             if (c == null)
             {
-                return $"Cannot get help because {command} is not known command";
+                return $"Cannot get help because '{Prefix}{command}' is not known command";
             }
             StringBuilder b = new();
             HelpDocumentationAttribute commandDoc = c.Method.GetCustomAttribute<HelpDocumentationAttribute>();

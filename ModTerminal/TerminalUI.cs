@@ -144,16 +144,30 @@ namespace ModTerminal
             {
                 Write("> " + text);
                 CommandInvocation invocation = CommandParser.ParseCommand(text);
-                Command? command = CommandTable.GetCommand(invocation.Name);
+                ScopedCommandInvocation scopedInvocation = CommandParser.ScopeCommandInvocation(
+                    ModTerminalMod.Instance.PrimaryCommandTable, invocation);
+                Command? command = scopedInvocation.OwningTable.GetCommand(scopedInvocation.FinalInvocation.Name);
                 if (command == null)
                 {
-                    Write($"Error: {invocation.Name} is not a known command");
+                    // check if there a command group with the correct name, display help and subcommands
+                    CommandTable? group = scopedInvocation.OwningTable.GetGroup(scopedInvocation.FinalInvocation.Name);
+                    if (group == null)
+                    {
+                        // no matching command or group
+                        Write($"Error: {scopedInvocation.FullName} is not a known command");
+                    }
+                    else
+                    {
+                        // no matching command, but matching group
+                        Write(group.GeneralHelp);
+                        Write($"Available commands: {string.Join(", ", group.RegisteredCommandAndGroupNames.OrderBy(x => x))}");
+                    }
                 }
                 else
                 {
                     try
                     {
-                        string? result = command.Execute(invocation.Slots);
+                        string? result = command.Execute(scopedInvocation.FinalInvocation.Slots);
                         if (result != null)
                         {
                             Write(result);
@@ -162,7 +176,7 @@ namespace ModTerminal
                     catch (Exception ex)
                     {
                         ModTerminalMod.Instance.LogError(ex);
-                        Write($"Unexpected error executing {invocation.Name}");
+                        Write($"Unexpected error executing {scopedInvocation.FullName}");
                     }
                 }
             }
