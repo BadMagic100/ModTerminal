@@ -18,7 +18,7 @@ namespace ModTerminal
     {
         private static ModTerminalMod? _instance;
 
-        internal static ModTerminalMod Instance
+        public static ModTerminalMod Instance
         {
             get
             {
