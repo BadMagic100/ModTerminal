@@ -2,6 +2,7 @@
 using MagicUI.Elements;
 using MagicUI.Graphics;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -160,7 +161,10 @@ namespace ModTerminal
                     {
                         // no matching command, but matching group
                         Write(group.GeneralHelp);
-                        Write($"Available commands: {string.Join(", ", group.RegisteredCommandAndGroupNames.OrderBy(x => x))}");
+                        IEnumerable<string> subcommands = group.RegisteredCommandAndGroupNames
+                            .OrderBy(x => x, new ValuesLastComparer<string>("help", "listcommands"))
+                            .ThenBy(x => x);
+                        Write($"Available commands: {string.Join(", ", subcommands)}");
                     }
                 }
                 else

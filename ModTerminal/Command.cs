@@ -113,7 +113,7 @@ namespace ModTerminal
                 }
                 if (slots.Count < parameters.Length - 1)
                 {
-                    return $"Error: not enough parameters for {Name}. Use the 'help {Name}' command to see the correct parameters";
+                    return $"Error: not enough parameters for {Name}. Use the help command to see the correct parameters.";
                 }
             }
             else
@@ -159,7 +159,7 @@ namespace ModTerminal
                     if (!paramLookup.TryGetValue(slot.Name, out param))
                     {
                         return $"Error: no named parameter matched the slot {slot.Name}. " +
-                            $"Use the 'help {Name}' command to see the correct parameters";
+                            $"Use the help command to see the correct parameters";
                     }
                 }
 
@@ -174,7 +174,7 @@ namespace ModTerminal
                 catch
                 {
                     return $"Error: could not convert '{slot.Value}' to the correct type for {param.Name}. "
-                        + $"Use the 'help {Name}' command to see the correct parameters";
+                        + $"Use the help command to see the correct parameters";
                 }
 
                 int argIndex = param.Position;
