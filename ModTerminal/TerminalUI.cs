@@ -1,4 +1,5 @@
-﻿using MagicUI.Core;
+﻿using Antlr4.Runtime;
+using MagicUI.Core;
 using MagicUI.Elements;
 using MagicUI.Graphics;
 using System;
@@ -140,6 +141,12 @@ namespace ModTerminal
         {
             sender.Text = "";
             text = text.Trim();
+            AntlrInputStream str = new(text);
+            TerminalCommandLexer lexer = new(str);
+            CommonTokenStream tokens = new(lexer);
+            TerminalCommandParser parser = new(tokens);
+            var antlrParsedCommand = parser.command();
+            ModTerminalMod.Instance.Log(antlrParsedCommand.ToStringTree());
             commandBuffer.Add(text);
             if (!string.IsNullOrWhiteSpace(text))
             {
