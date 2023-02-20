@@ -1,13 +1,16 @@
 ﻿using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 using MagicUI.Core;
 using MagicUI.Elements;
 using MagicUI.Graphics;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ModTerminal
 {
@@ -71,7 +74,7 @@ namespace ModTerminal
         private bool? heldHotkeySetting;
         private bool? heldLockKeybind;
 
-        private CommandBuffer commandBuffer = new();
+        private readonly CommandBuffer commandBuffer = new();
         private StreamWriter? fileLogger;
 
         private TerminalUI()
@@ -126,6 +129,7 @@ namespace ModTerminal
                     commandBuffer.Hold(input.Text);
                 }
                 input.Text = commandBuffer.GoUp();
+                CursorToEnd();
             }
         }
 
@@ -134,51 +138,83 @@ namespace ModTerminal
             if (isActive)
             {
                 input.Text = commandBuffer.GoDown();
+                CursorToEnd();
             }
         }
+
+        private void CursorToEnd()
+        {
+            InputField _if = input.GameObject.GetComponent<InputField>();
+            _if.StartCoroutine(MoveCursor());
+
+            IEnumerator MoveCursor()
+            {
+                yield return new WaitForEndOfFrame();
+                yield return new WaitForEndOfFrame();
+                _if.caretPosition = input.Text.Length;
+                _if.ForceLabelUpdate();
+            }
+        }
+
 
         private void OnCommand(TextInput sender, string text)
         {
             sender.Text = "";
-            text = text.Trim();
-            AntlrInputStream str = new(text);
-            TerminalCommandLexer lexer = new(str);
-            CommonTokenStream tokens = new(lexer);
-            TerminalCommandParser parser = new(tokens);
-            var antlrParsedCommand = parser.command();
-            ModTerminalMod.Instance.Log(antlrParsedCommand.ToStringTree());
-            commandBuffer.Add(text);
-            if (!string.IsNullOrWhiteSpace(text))
+            if (!string.IsNullOrWhiteSpace(text.Trim()))
             {
-                Write("> " + text);
-                CommandInvocation invocation = CommandParser.ParseCommand(text);
-                ScopedCommandInvocation scopedInvocation = CommandParser.ScopeCommandInvocation(
-                    ModTerminalMod.Instance.PrimaryCommandTable, invocation);
-                Command? command = scopedInvocation.OwningTable.GetCommand(scopedInvocation.FinalInvocation.Name);
-                if (command == null)
+                commandBuffer.Add(text);
+                LoggingErrorReporter errorReporter = new();
+                CommandMatcher matcher = new(ModTerminalMod.Instance.PrimaryCommandTable);
+
+                AntlrInputStream str = new(text);
+                TerminalCommandLexer lexer = new(str);
+                lexer.AddErrorListener(errorReporter);
+                CommonTokenStream tokens = new(lexer);
+                TerminalCommandParser parser = new(tokens);
+                parser.AddErrorListener(errorReporter);
+                ParseTreeWalker walker = new();
+                walker.Walk(matcher, parser.command());
+
+                Write("> " + text.Trim());
+
+                // if there were any syntactic or semantic errors, we won't be able to invoke
+                if (errorReporter.CollectedSyntaxErrors.Any())
                 {
-                    // check if there a command group with the correct name, display help and subcommands
-                    CommandTable? group = scopedInvocation.OwningTable.GetGroup(scopedInvocation.FinalInvocation.Name);
-                    if (group == null)
+                    Write("Syntax error:");
+                    foreach (string error in errorReporter.CollectedSyntaxErrors)
                     {
-                        // no matching command or group
-                        Write($"Error: {scopedInvocation.FullName} is not a known command");
+                        Write("    " + error);
                     }
-                    else
+                }
+                else if (!matcher.FoundCommand 
+                    || matcher.CollectedSemanticErrors.Any())
+                {
+                    if (matcher.InvocationType == InvocationType.CommandGroup && !matcher.CollectedSemanticErrors.Any())
                     {
-                        // no matching command, but matching group
+                        CommandTable group = matcher.Table;
                         Write(group.GeneralHelp);
                         IEnumerable<string> subcommands = group.RegisteredCommandAndGroupNames
                             .OrderBy(x => x, new ValuesLastComparer<string>("help", "listcommands"))
                             .ThenBy(x => x);
                         Write($"Available commands: {string.Join(", ", subcommands)}");
                     }
+                    else if (matcher.InvocationType == InvocationType.Command && !matcher.FoundCommand)
+                    {
+                        Write($"No such command '{matcher.FullRequestedCommandName}'. Use the 'help' and 'listcommands' commands to get started.");
+                    }
+                    else
+                    {
+                        foreach (string error in matcher.CollectedSemanticErrors)
+                        {
+                            Write("  - " + error);
+                        }
+                    }
                 }
                 else
                 {
                     try
                     {
-                        string? result = command.Execute(scopedInvocation.FinalInvocation.Slots);
+                        string? result = matcher.Command.Execute(matcher.CollectedParameters);
                         if (result != null)
                         {
                             Write(result);
@@ -187,9 +223,49 @@ namespace ModTerminal
                     catch (Exception ex)
                     {
                         ModTerminalMod.Instance.LogError(ex);
-                        Write($"Unexpected error executing {scopedInvocation.FullName}");
+                        Write($"Unexpected error executing {matcher.FullRequestedCommandName}");
                     }
                 }
+
+                //CommandInvocation invocation = CommandParser.ParseCommand(text.Trim());
+                //ScopedCommandInvocation scopedInvocation = CommandParser.ScopeCommandInvocation(
+                //    ModTerminalMod.Instance.PrimaryCommandTable, invocation);
+                //Command? command = scopedInvocation.OwningTable.GetCommand(scopedInvocation.FinalInvocation.Name);
+                //if (command == null)
+                //{
+                //    // check if there a command group with the correct name, display help and subcommands
+                //    CommandTable? group = scopedInvocation.OwningTable.GetGroup(scopedInvocation.FinalInvocation.Name);
+                //    if (group == null)
+                //    {
+                //        // no matching command or group
+                //        Write($"Error: {scopedInvocation.FullName} is not a known command");
+                //    }
+                //    else
+                //    {
+                //        // no matching command, but matching group
+                //        Write(group.GeneralHelp);
+                //        IEnumerable<string> subcommands = group.RegisteredCommandAndGroupNames
+                //            .OrderBy(x => x, new ValuesLastComparer<string>("help", "listcommands"))
+                //            .ThenBy(x => x);
+                //        Write($"Available commands: {string.Join(", ", subcommands)}");
+                //    }
+                //}
+                //else
+                //{
+                //    try
+                //    {
+                //        string? result = command.Execute(scopedInvocation.FinalInvocation.Slots);
+                //        if (result != null)
+                //        {
+                //            Write(result);
+                //        }
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        ModTerminalMod.Instance.LogError(ex);
+                //        Write($"Unexpected error executing {scopedInvocation.FullName}");
+                //    }
+                //}
             }
             sender.SelectAndActivate();
         }
@@ -208,12 +284,9 @@ namespace ModTerminal
 
         private void Write(string content)
         {
-            if (fileLogger != null)
-            {
-                fileLogger.WriteLine(content);
-            }
+            fileLogger?.WriteLine(content);
 
-            string next = output.Text + '\n' + content.Trim();
+            string next = output.Text + '\n' + content.TrimEnd();
             string[] lines = next.Split('\n');
             int diff = lines.Length - MAX_LINES;
             if (diff > 0)

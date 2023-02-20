@@ -16,7 +16,8 @@ namespace ModTerminal
 
         private void Update()
         {
-            if (selectableToWatch != null && EventSystem.current.currentSelectedGameObject == selectableToWatch.gameObject)
+            if (selectableToWatch != null && EventSystem.current != null 
+                && EventSystem.current.currentSelectedGameObject == selectableToWatch.gameObject)
             {
                 if (Input.GetKeyDown(KeyCode.UpArrow))
                 {

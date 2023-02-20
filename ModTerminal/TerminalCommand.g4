@@ -1,6 +1,7 @@
 ﻿grammar TerminalCommand;
 
-command: ID value* namedParameter* EOF;
+
+command: value (value | namedParameter)* EOF;
 
 value
     : ID
@@ -9,7 +10,7 @@ value
     ;
 
 namedParameter
-    : NAME_PREFIX ID value?
+    : NAME_PREFIX ID (NAME_INFIX? value)?
     | ID NAME_INFIX value
     ;
 
@@ -21,7 +22,7 @@ LITERAL
     : QUOTE (~["\\\r\n] | '\\' (QUOTE | '\\' | '\n'))* QUOTE
     ;
 STRICT_LITERAL
-    : (IDCHAR | '-' IDCHAR)+
+    : (NONSPECIALCHAR | '-' NONSPECIALCHAR)+
     ;
 
 NAME_PREFIX: '--';
@@ -33,5 +34,6 @@ WS
 
 fragment QUOTE: '"';
 fragment IDSTARTCHAR: [a-zA-Z_];
+fragment NONSPECIALCHAR: ~[ \n\-="];
 fragment IDCHAR: IDSTARTCHAR | [0-9];
 fragment WSCHAR: [ \r\n\t];
