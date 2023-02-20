@@ -34,6 +34,6 @@ WS
 
 fragment QUOTE: '"';
 fragment IDSTARTCHAR: [a-zA-Z_];
-fragment NONSPECIALCHAR: ~[ \n\-="];
+fragment NONSPECIALCHAR: ~[ \r\n\t\-="];
 fragment IDCHAR: IDSTARTCHAR | [0-9];
 fragment WSCHAR: [ \r\n\t];
