@@ -226,46 +226,6 @@ namespace ModTerminal
                         Write($"Unexpected error executing {matcher.FullRequestedCommandName}");
                     }
                 }
-
-                //CommandInvocation invocation = CommandParser.ParseCommand(text.Trim());
-                //ScopedCommandInvocation scopedInvocation = CommandParser.ScopeCommandInvocation(
-                //    ModTerminalMod.Instance.PrimaryCommandTable, invocation);
-                //Command? command = scopedInvocation.OwningTable.GetCommand(scopedInvocation.FinalInvocation.Name);
-                //if (command == null)
-                //{
-                //    // check if there a command group with the correct name, display help and subcommands
-                //    CommandTable? group = scopedInvocation.OwningTable.GetGroup(scopedInvocation.FinalInvocation.Name);
-                //    if (group == null)
-                //    {
-                //        // no matching command or group
-                //        Write($"Error: {scopedInvocation.FullName} is not a known command");
-                //    }
-                //    else
-                //    {
-                //        // no matching command, but matching group
-                //        Write(group.GeneralHelp);
-                //        IEnumerable<string> subcommands = group.RegisteredCommandAndGroupNames
-                //            .OrderBy(x => x, new ValuesLastComparer<string>("help", "listcommands"))
-                //            .ThenBy(x => x);
-                //        Write($"Available commands: {string.Join(", ", subcommands)}");
-                //    }
-                //}
-                //else
-                //{
-                //    try
-                //    {
-                //        string? result = command.Execute(scopedInvocation.FinalInvocation.Slots);
-                //        if (result != null)
-                //        {
-                //            Write(result);
-                //        }
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        ModTerminalMod.Instance.LogError(ex);
-                //        Write($"Unexpected error executing {scopedInvocation.FullName}");
-                //    }
-                //}
             }
             sender.SelectAndActivate();
         }
