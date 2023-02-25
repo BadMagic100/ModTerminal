@@ -14,6 +14,8 @@ namespace ModTerminal
         private readonly bool HasResult;
         public readonly MethodInfo Method;
 
+        public ExecutionContext? ExecutionContext { get; private set; }
+
         public Command(string commandName, Delegate exec)
         {
             if (!namePattern.IsMatch(commandName))
@@ -40,12 +42,22 @@ namespace ModTerminal
 
             ParameterInfo[] parameters = Method.GetParameters();
             foreach(ParameterInfo param in parameters)
-            {
+            { 
+                if (typeof(Command) == param.ParameterType)
+                {
+                    if (param.Position == 0)
+                    {
+                        continue;
+                    }
+                    throw new ArgumentException("Command parameters are only legal in the first position.");
+                }
+
                 if (param.ParameterType.IsArray && param.Position != parameters.Length - 1)
                 {
                     throw new ArgumentException("Array parameters are only legal in the final position (e.g. params arrays)",
                         nameof(exec));
                 }
+
                 Type targetType = param.ParameterType.ConversionType();
                 if (!targetType.IsEnum && !targetType.IsConvertible())
                 {
@@ -56,7 +68,10 @@ namespace ModTerminal
 
         internal string? Execute(object?[] args)
         {
+            ExecutionContext = new ExecutionContext();
             object result = Delegate.DynamicInvoke(args);
+            ExecutionContext.Finish();
+            ExecutionContext = null;
             if (HasResult)
             {
                 return (string)result;

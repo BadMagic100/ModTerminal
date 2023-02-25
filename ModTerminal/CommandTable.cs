@@ -127,12 +127,12 @@ namespace ModTerminal
             else
             {
                 b.AppendLine("Parameters:");
-                foreach (ParameterInfo param in c.Method.GetParameters())
+                foreach (ParameterInfo param in c.Method.GetParameters().Where(p => typeof(Command) != p.ParameterType))
                 {
                     b.Append("  - ");
                     b.Append(param.Name);
                     b.Append(": ");
-                    b.Append(GetFriendlyTypeName(param));
+                    b.Append(param.FriendlyTypeName());
                     HelpDocumentationAttribute? paramDoc = param.GetCustomAttribute<HelpDocumentationAttribute>();
                     if (paramDoc != null)
                     {
@@ -143,69 +143,6 @@ namespace ModTerminal
                 }
             }
             return b.ToString();
-        }
-
-        private static readonly Dictionary<Type, string> typeNameLookup = new()
-        {
-            [typeof(char)] = "char",
-            [typeof(string)] = "string",
-            [typeof(bool)] = "bool",
-            [typeof(byte)] = "byte",
-            [typeof(sbyte)] = "sbyte",
-            [typeof(short)] = "short",
-            [typeof(ushort)] = "ushort",
-            [typeof(int)] = "int",
-            [typeof(uint)] = "uint",
-            [typeof(long)] = "long",
-            [typeof(ulong)] = "ulong",
-            [typeof(float)] = "float",
-            [typeof(double)] = "double",
-            [typeof(decimal)] = "decimal",
-            [typeof(DateTime)] = "datetime"
-        };
-
-        private static string GetFriendlyTypeName(Type type)
-        {
-            if (type.IsArray)
-            {
-                return GetFriendlyTypeName(type.GetElementType()) + "[]";
-            }
-            if (type.IsEnum)
-            {
-                return "one of " + string.Join(", ", Enum.GetNames(type));
-            }
-
-            Type nullableType = Nullable.GetUnderlyingType(type);
-            if (nullableType != null)
-            {
-                return GetFriendlyTypeName(nullableType);
-            }
-
-            if (typeNameLookup.TryGetValue(type, out string name))
-            {
-                return name;
-            }
-            return type.Name;
-        }
-
-        private static string GetFriendlyTypeName(ParameterInfo p)
-        {
-            if (p.HasDefaultValue)
-            {
-                StringBuilder b = new(GetFriendlyTypeName(p.ParameterType));
-                b.Append(" (optional");
-                if (p.DefaultValue != null)
-                {
-                    b.Append(", default ");
-                    b.Append(p.DefaultValue.ToString());
-                }
-                b.Append(")");
-                return b.ToString();
-            }
-            else
-            {
-                return GetFriendlyTypeName(p.ParameterType);
-            }
         }
     }
 }

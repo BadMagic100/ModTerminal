@@ -134,6 +134,13 @@ namespace ModTerminal
             Dictionary<string, ParameterInfo> paramLookup = parameters.ToDictionary(p => p.Name);
             List<ParameterInfo> unsetParameters = parameters.ToList();
             args = new object[parameters.Length];
+
+            if (parameters.Length > 0 && typeof(Command) == parameters[0].ParameterType)
+            {
+                args[0] = currentCommand;
+                unsetParameters.Remove(parameters[0]);
+            }
+
             for (int i = 0; i < args.Length; i++)
             {
                 if (parameters[i].HasDefaultValue)
