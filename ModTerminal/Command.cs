@@ -59,7 +59,7 @@ namespace ModTerminal
                 }
 
                 Type targetType = param.ParameterType.ConversionType();
-                if (!targetType.IsEnum && !targetType.IsConvertible())
+                if (!targetType.IsEnum && !param.IsConvertible())
                 {
                     throw new ArgumentException($"{param.Name} is not a convertible type", nameof(exec));
                 }

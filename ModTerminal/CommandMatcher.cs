@@ -154,10 +154,19 @@ namespace ModTerminal
                 string name = namedSlotGroup.Key;
                 if (paramLookup.TryGetValue(name, out ParameterInfo target))
                 {
-                    object?[] vals = namedSlotGroup.Select(v => ConvertValue(target, v.Value)).ToArray();
+                    Type targetType = target.ParameterType.ConversionType();
+                    object?[] vals = namedSlotGroup.Select(v =>
+                    {
+                        if (!target.TryConvertValue(v.Value, out object? result))
+                        {
+                            errors.Add($"Could not convert '{v}' to type {targetType.Name} for argument {target.Name}");
+                        }
+                        return result;
+                    }).ToArray();
+
                     if (target.ParameterType.IsArray)
                     {
-                        Array arr = Array.CreateInstance(target.ParameterType.ConversionType(), vals.Length);
+                        Array arr = Array.CreateInstance(targetType, vals.Length);
                         vals.CopyTo(arr, 0);
                         args[target.Position] = arr;
                     }
@@ -186,22 +195,31 @@ namespace ModTerminal
                 }
 
                 ParameterInfo target = unsetParameters[0];
+                Type targetType = target.ParameterType.ConversionType();
                 if (target.ParameterType.IsArray)
                 {
                     List<object?> vals = new();
                     while (i < orderedSlots.Count)
                     {
-                        vals.Add(ConvertValue(target, orderedSlots[i].Value));
+                        if (!target.TryConvertValue(orderedSlots[i].Value, out object? result))
+                        {
+                            errors.Add($"Could not convert '{orderedSlots[i].Value}' to type {targetType.Name} for argument {target.Name}");
+                        }
+                        vals.Add(result);
                         i++;
                     }
-                    Array arr = Array.CreateInstance(target.ParameterType.ConversionType(), vals.Count);
+                    Array arr = Array.CreateInstance(targetType, vals.Count);
                     vals.ToArray().CopyTo(arr, 0);
                     args[target.Position] = arr;
                 }
                 else
                 {
                     // do conversion and apply
-                    args[target.Position] = ConvertValue(target, orderedSlots[i].Value);
+                    if (!target.TryConvertValue(orderedSlots[i].Value, out object? result))
+                    {
+                        errors.Add($"Could not convert '{orderedSlots[i].Value}' to type {targetType.Name} for argument {target.Name}");
+                    }
+                    args[target.Position] = result;
                 }
                 unsetParameters.Remove(target);
             }
@@ -230,36 +248,6 @@ namespace ModTerminal
         private Interval RangeOf(ParserRuleContext context)
         {
             return new Interval(context.Start.StartIndex, context.Stop.StopIndex);
-        }
-
-        private object? ConvertValue(ParameterInfo param, string val)
-        {
-            Type targetType = param.ParameterType.ConversionType();
-            try
-            {
-                if (targetType.IsEnum)
-                {
-                    object slotValue = Enum.Parse(targetType, val);
-                    if (Enum.IsDefined(targetType, slotValue))
-                    {
-                        return slotValue;
-                    }
-                    else
-                    {
-                        errors.Add($"'{val}' is not a valid value for argument {param.Name}");
-                        return null;
-                    }
-                }
-                else
-                { 
-                    return Convert.ChangeType(val, targetType);
-                }
-            }
-            catch
-            {
-                errors.Add($"Could not convert '{val}' to type {targetType.Name} for argument {param.Name}");
-                return null;
-            }
         }
     }
 }

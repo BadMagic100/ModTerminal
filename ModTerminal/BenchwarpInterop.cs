@@ -21,7 +21,6 @@ namespace ModTerminal
         {
             if (ModHooks.GetMod("Benchwarp") is Mod)
             {
-                ModTerminalMod.Instance.LogDebug("Found benchwarp and doing a thing");
                 a();
             }
         }
@@ -30,7 +29,6 @@ namespace ModTerminal
         {
             if (ModHooks.GetMod("Benchwarp") is Mod)
             {
-                ModTerminalMod.Instance.LogDebug("Found benchwarp and doing a thing");
                 return f();
             }
             return defaultValue;

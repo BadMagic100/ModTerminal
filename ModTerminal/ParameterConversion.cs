@@ -1,11 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
 namespace ModTerminal
 {
-    internal static class ParameterConversionUtil
+    public interface IValueConverter
+    {
+        object? Convert(string value);
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public class ParameterConverterAttribute<T> : Attribute where T : IValueConverter, new() { }
+
+    internal static class ParameterConversion
     {
         private static readonly HashSet<Type> convertibleTypes = new()
         {
@@ -45,7 +54,81 @@ namespace ModTerminal
             [typeof(DateTime)] = "datetime"
         };
 
+        private static Attribute? GetConverterAttribute(this ParameterInfo p)
+        {
+            return p.GetCustomAttributes(inherit: false)
+                .OfType<Attribute>()
+                .Where(a => a.GetType().IsGenericType)
+                .Where(a => a.GetType().GetGenericTypeDefinition() == typeof(ParameterConverterAttribute<>))
+                .FirstOrDefault();
+        }
+
+        public static bool IsConvertible(this ParameterInfo p)
+        {
+            if (p.GetConverterAttribute() != null)
+            {
+                return true;
+            }
+            return p.ParameterType.ConversionType().IsConvertible();
+        }
+
         public static bool IsConvertible(this Type t) => convertibleTypes.Contains(t);
+
+        public static bool TryConvertValue(this ParameterInfo p, string value, out object? result)
+        {
+            result = null;
+
+            Type targetType = p.ParameterType.ConversionType();
+            Attribute? converterAttr = p.GetConverterAttribute();
+            if (converterAttr != null)
+            {
+                Type converterType = converterAttr.GetType().GetGenericArguments().First();
+                IValueConverter? converter = Activator.CreateInstance(converterType) as IValueConverter;
+                if (converter == null)
+                {
+                    return false;
+                }
+                try
+                {
+                    // assume that the converter can always produce a valid value for the param - if it can't,
+                    // that's a modder bug not a user error, so any crash that happens should be caught before release
+                    // and graceful failure is not needed.
+                    result = converter.Convert(value);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+
+            try
+            {
+                if (targetType.IsEnum)
+                {
+                    object slotValue = Enum.Parse(targetType, value);
+                    if (Enum.IsDefined(targetType, slotValue))
+                    {
+                        result = slotValue;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    result = Convert.ChangeType(value, targetType);
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         public static Type ConversionType(this Type t)
         {
