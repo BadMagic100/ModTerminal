@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace ModTerminal
+namespace ModTerminal.Processing
 {
     internal class ValuesLastComparer<T> : Comparer<T>
     {
         private readonly T[] values;
-        public ValuesLastComparer(params T[] values) 
+        public ValuesLastComparer(params T[] values)
         {
             this.values = values;
         }

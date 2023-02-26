@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace ModTerminal
+namespace ModTerminal.Commands
 {
     public enum PDType
     {

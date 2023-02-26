@@ -1,6 +1,6 @@
 ﻿using Nito.Collections;
 
-namespace ModTerminal
+namespace ModTerminal.Processing
 {
     internal class CommandBuffer
     {

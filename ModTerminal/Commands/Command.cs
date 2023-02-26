@@ -1,8 +1,9 @@
-﻿using System;
+﻿using ModTerminal.Processing;
+using System;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace ModTerminal
+namespace ModTerminal.Commands
 {
     public class Command
     {
@@ -41,8 +42,8 @@ namespace ModTerminal
             }
 
             ParameterInfo[] parameters = Method.GetParameters();
-            foreach(ParameterInfo param in parameters)
-            { 
+            foreach (ParameterInfo param in parameters)
+            {
                 if (typeof(Command) == param.ParameterType)
                 {
                     if (param.Position == 0)

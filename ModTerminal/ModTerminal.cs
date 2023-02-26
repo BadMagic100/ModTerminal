@@ -1,5 +1,6 @@
 using DebugMod;
 using Modding;
+using ModTerminal.Commands;
 using System;
 using System.Collections;
 

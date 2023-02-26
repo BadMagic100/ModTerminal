@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using ModTerminal.Processing;
 
-namespace ModTerminal
+namespace ModTerminal.Commands
 {
     public class CommandTable
     {
@@ -16,7 +17,7 @@ namespace ModTerminal
 
         public HashSet<string> RegisteredCommandAndGroupNames => new(commands.Keys.Concat(commandGroups.Keys));
 
-        public CommandTable(string generalHelp) 
+        public CommandTable(string generalHelp)
         {
             GeneralHelp = generalHelp;
             RegisterCommand(new Command("help", HelpCommand));
@@ -83,7 +84,7 @@ namespace ModTerminal
             }
 
             StringBuilder b = new($"Showing commands {first}-{last} of {count}:\n");
-            foreach (string commandName in commands.Keys.OrderBy(k => k).Skip(first - 1).Take(PAGE_SIZE)) 
+            foreach (string commandName in commands.Keys.OrderBy(k => k).Skip(first - 1).Take(PAGE_SIZE))
             {
                 b.Append("  - ");
                 b.Append($"{Prefix}{commandName}");

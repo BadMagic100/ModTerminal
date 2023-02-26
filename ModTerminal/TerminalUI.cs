@@ -3,6 +3,8 @@ using Antlr4.Runtime.Tree;
 using MagicUI.Core;
 using MagicUI.Elements;
 using MagicUI.Graphics;
+using ModTerminal.Commands;
+using ModTerminal.Processing;
 using System;
 using System.Collections;
 using System.Collections.Generic;

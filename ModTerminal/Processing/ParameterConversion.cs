@@ -1,19 +1,12 @@
-﻿using System;
+﻿using ModTerminal.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace ModTerminal
+namespace ModTerminal.Processing
 {
-    public interface IValueConverter
-    {
-        object? Convert(string value);
-    }
-
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class ParameterConverterAttribute<T> : Attribute where T : IValueConverter, new() { }
-
     internal static class ParameterConversion
     {
         private static readonly HashSet<Type> convertibleTypes = new()
@@ -134,7 +127,7 @@ namespace ModTerminal
         {
             if (t.IsArray)
             {
-                return ConversionType(t.GetElementType());
+                return t.GetElementType().ConversionType();
             }
             return Nullable.GetUnderlyingType(t) ?? t;
         }
@@ -143,7 +136,7 @@ namespace ModTerminal
         {
             if (type.IsArray)
             {
-                return FriendlyTypeName(type.GetElementType()) + "[]";
+                return type.GetElementType().FriendlyTypeName() + "[]";
             }
             if (type.IsEnum)
             {
@@ -153,7 +146,7 @@ namespace ModTerminal
             Type nullableType = Nullable.GetUnderlyingType(type);
             if (nullableType != null)
             {
-                return FriendlyTypeName(nullableType);
+                return nullableType.FriendlyTypeName();
             }
 
             if (typeNameLookup.TryGetValue(type, out string name))

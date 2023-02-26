@@ -1,6 +1,7 @@
 ﻿using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
+using ModTerminal.Commands;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -9,10 +10,10 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using NotNullAttribute = Antlr4.Runtime.Misc.NotNullAttribute;
 
-namespace ModTerminal
+namespace ModTerminal.Processing
 {
     internal record AnnotatedSlotInfo(Interval SourceInterval, ParserRuleContext Context, string Value);
-    internal record AnnotatedNamedSlotInfo(Interval SourceInterval, ParserRuleContext Context, string Name, string Value) 
+    internal record AnnotatedNamedSlotInfo(Interval SourceInterval, ParserRuleContext Context, string Name, string Value)
         : AnnotatedSlotInfo(SourceInterval, Context, Value);
 
     public enum InvocationType
@@ -56,7 +57,7 @@ namespace ModTerminal
 
         public CommandMatcher(CommandTable rootTable)
         {
-            this.currentTable = rootTable;
+            currentTable = rootTable;
         }
 
         public override void EnterValue([NotNull] TerminalCommandParser.ValueContext context)
@@ -103,7 +104,7 @@ namespace ModTerminal
 
         public override void EnterNamedParameter([NotNull] TerminalCommandParser.NamedParameterContext context)
         {
-            if (!IsMissingToken(context.ID())) 
+            if (!IsMissingToken(context.ID()))
             {
                 string name = context.ID().GetText();
                 string value = context.value() == null ? "true" : ReadValue(context.value());

@@ -51,7 +51,7 @@
         <EmbeddedResource Include="Resources\Background.png" />
     </ItemGroup>
     <ItemGroup>
-        <Antlr4 Include="TerminalCommand.g4"/>
+        <Antlr4 Include="TerminalCommand.g4" />
     </ItemGroup>
     <ItemGroup>
         <Reference Include="Assembly-CSharp">

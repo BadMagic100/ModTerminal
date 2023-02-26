@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace ModTerminal
+namespace ModTerminal.Commands
 {
     public class ExecutionContext : IProgress<string>
     {

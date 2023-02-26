@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ModTerminal
+namespace ModTerminal.Commands
 {
     /// <summary>
     /// An attribute which provides help documentation on a terminal command or command parameter.

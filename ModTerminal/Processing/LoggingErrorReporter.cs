@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace ModTerminal
+namespace ModTerminal.Processing
 {
     internal class LoggingErrorReporter : IAntlrErrorListener<IToken>, IAntlrErrorListener<int>
     {
@@ -10,9 +10,9 @@ namespace ModTerminal
 
         public IReadOnlyList<string> CollectedSyntaxErrors => collectedSyntaxErrors.AsReadOnly();
 
-        public void SyntaxError(TextWriter output, 
-            IRecognizer recognizer, IToken offendingSymbol, 
-            int line, int charPositionInLine, string msg, 
+        public void SyntaxError(TextWriter output,
+            IRecognizer recognizer, IToken offendingSymbol,
+            int line, int charPositionInLine, string msg,
             RecognitionException e
         )
         {
