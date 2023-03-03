@@ -248,6 +248,11 @@ namespace ModTerminal.Processing
 
         private Interval RangeOf(ParserRuleContext context)
         {
+            // handle EOFs
+            if (context.Start.Type == -1)
+            {
+                return new Interval(context.Start.StartIndex, context.Start.StartIndex);
+            }
             return new Interval(context.Start.StartIndex, context.Stop.StopIndex);
         }
     }

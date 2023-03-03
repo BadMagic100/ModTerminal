@@ -7,6 +7,11 @@ namespace ModTerminal.Commands
     /// </summary>
     public interface IValueConverter
     {
+        /// <summary>
+        /// Converts a string value to an arbitrary type, or throws <see cref="InvalidCastException"/> if it cannot.
+        /// </summary>
+        /// <param name="value">The value to convert.</param>
+        /// <returns>A converted value.</returns>
         object? Convert(string value);
     }
 

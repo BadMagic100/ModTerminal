@@ -72,6 +72,7 @@ namespace ModTerminal
         private readonly TextObject output;
         private bool isActive = false;
         private bool isEnabled = false;
+        private bool isCommandRunning = false;
 
         private bool? heldHotkeySetting;
         private bool? heldLockKeybind;
@@ -187,6 +188,7 @@ namespace ModTerminal
                     {
                         Write("    " + error);
                     }
+                    sender.SelectAndActivate();
                 }
                 else if (!matcher.FoundCommand 
                     || matcher.CollectedSemanticErrors.Any())
@@ -211,11 +213,24 @@ namespace ModTerminal
                             Write("  - " + error);
                         }
                     }
+                    sender.SelectAndActivate();
                 }
                 else
                 {
                     try
                     {
+                        void Unhook()
+                        {
+                            matcher.Command.ProgressReported -= Write;
+                            matcher.Command.Finished -= Unhook;
+                            sender.SelectAndActivate();
+                            isCommandRunning = false;
+                        }
+
+                        matcher.Command.ProgressReported += Write;
+                        matcher.Command.Finished += Unhook;
+                        sender.Deactivate();
+                        isCommandRunning = true;
                         string? result = matcher.Command.Execute(matcher.CollectedParameters);
                         if (result != null)
                         {
@@ -226,10 +241,10 @@ namespace ModTerminal
                     {
                         ModTerminalMod.Instance.LogError(ex);
                         Write($"Unexpected error executing {matcher.FullRequestedCommandName}");
+                        sender.SelectAndActivate();
                     }
                 }
             }
-            sender.SelectAndActivate();
         }
 
         [HelpDocumentation("Clears the terminal.")]
@@ -279,7 +294,7 @@ namespace ModTerminal
         [HelpDocumentation("Closes the terminal.")]
         public void Hide()
         {
-            if (isEnabled)
+            if (isEnabled && !isCommandRunning)
             {
                 ClearInput();
                 commandBuffer.ResetNavigation();
@@ -326,7 +341,8 @@ namespace ModTerminal
         }
 
         [HelpDocumentation("Starts logging terminal content to a file.")]
-        public string StartLogging(
+        public string? StartLogging(
+            Command self,
             string fileName, 
             bool append = false
         )
@@ -337,9 +353,11 @@ namespace ModTerminal
                 string dir = Path.GetDirectoryName(path);
                 Directory.CreateDirectory(dir);
                 FileMode mode = append ? FileMode.Append : FileMode.Create;
+                self.ExecutionContext?.Report($"Starting logging to {path}");
+
                 FileStream fs = new(path, mode, FileAccess.Write, FileShare.ReadWrite);
                 fileLogger = new(fs, Encoding.UTF8) { AutoFlush = true };
-                return $"Started logging to {path}";
+                return null;
             }
             return "Logging is already in progress.";
         }

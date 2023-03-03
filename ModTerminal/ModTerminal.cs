@@ -1,8 +1,10 @@
 using DebugMod;
 using Modding;
 using ModTerminal.Commands;
+using ModTerminal.Processing;
 using System;
 using System.Collections;
+using System.Threading;
 
 namespace ModTerminal
 {
@@ -12,6 +14,25 @@ namespace ModTerminal
         public static void ToggleTerminal()
         {
             TerminalUI.Instance.Toggle();
+        }
+    }
+
+    internal class Test
+    {
+        public static void DoCommand(Command self)
+        {
+            if (self.ExecutionContext == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                Thread.Sleep(5000);
+                self.ExecutionContext.Report("Working...");
+            }
+            self.ExecutionContext.Report("Done");
+            self.ExecutionContext.Finish();
         }
     }
 
@@ -51,12 +72,16 @@ namespace ModTerminal
         {
             Log("Initializing");
 
+            Dispatcher.Setup();
+
             // if debug doesn't exist, let this die and don't hook anything else
             DebugMod.DebugMod.AddToKeyBindList(typeof(DebugHooks));
 
             On.HeroController.Awake += OnEnteredFile;
             On.QuitToMenu.Start += OnExitedFile;
             On.GameCompletionScreen.Start += OnGotEnding;
+
+            PrimaryCommandTable.RegisterCommand(new AsyncCommand("test", Test.DoCommand));
 
             PrimaryCommandTable.RegisterCommand(new Command("clear", TerminalUI.Instance.Clear));
             PrimaryCommandTable.RegisterCommand(new Command("exit", TerminalUI.Instance.Hide));

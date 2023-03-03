@@ -33,6 +33,10 @@ namespace ModTerminal.Commands
 
         public void Report(string value)
         {
+            if (IsFinished)
+            {
+                throw new InvalidOperationException("Cannot report progress on a finished execution");
+            }
             ProgressChanged?.Invoke(value);
         }
     }

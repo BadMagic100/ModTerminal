@@ -11,11 +11,14 @@ namespace ModTerminal.Commands
 
         public readonly string Name;
 
-        private Delegate Delegate;
-        private readonly bool HasResult;
+        public event Action<string>? ProgressReported;
+        public event Action? Finished;
+
+        protected readonly Delegate Delegate;
+        protected readonly bool HasResult;
         public readonly MethodInfo Method;
 
-        public ExecutionContext? ExecutionContext { get; private set; }
+        public ExecutionContext? ExecutionContext { get; protected set; }
 
         public Command(string commandName, Delegate exec)
         {
@@ -67,17 +70,36 @@ namespace ModTerminal.Commands
             }
         }
 
-        internal string? Execute(object?[] args)
+        internal virtual string? Execute(object?[] args)
         {
             ExecutionContext = new ExecutionContext();
+            ExecutionContext.ProgressChanged += ReportProgress;
             object result = Delegate.DynamicInvoke(args);
             ExecutionContext.Finish();
-            ExecutionContext = null;
+
+            Finish();
+
             if (HasResult)
             {
                 return (string)result;
             }
             return null;
+        }
+
+        protected void ReportProgress(string message)
+        {
+            ProgressReported?.Invoke(message);
+        }
+
+        protected void Finish()
+        {
+            if (ExecutionContext == null || !ExecutionContext.IsFinished)
+            {
+                throw new InvalidOperationException("Cannot finish a command before its execution context has finished!");
+            }
+
+            Finished?.Invoke();
+            ExecutionContext = null;
         }
     }
 }
