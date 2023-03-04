@@ -6,6 +6,8 @@ namespace ModTerminal.Commands
 {
     public class AsyncCommand : Command
     {
+        private Thread? workerThread;
+
         public AsyncCommand(string commandName, Delegate exec) : base(commandName, exec)
         {
             if (Method.ReturnType != typeof(void))
@@ -17,12 +19,13 @@ namespace ModTerminal.Commands
 
         internal override string? Execute(object?[] args)
         {
-            ExecutionContext = new ExecutionContext();
-            ExecutionContext.ProgressChanged += JoinThreadAndReport;
-            ExecutionContext.Finished += JoinThreadAndFinish;
+            Context = new ExecutionContext();
+            Context.ProgressChanged += JoinThreadAndReport;
+            Context.CancellationRequested += JoinThreadAndCancel;
+            Context.Finished += JoinThreadAndFinish;
 
-            Thread worker = new(() => Delegate.DynamicInvoke(args));
-            worker.Start();
+            workerThread = new(() => Delegate.DynamicInvoke(args));
+            workerThread.Start();
             return null;
         }
 
@@ -31,9 +34,23 @@ namespace ModTerminal.Commands
             Dispatcher.BeginInvoke(() => ReportProgress(str));
         }
 
+        private void JoinThreadAndCancel()
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                workerThread?.Abort();
+                Context?.Report("Operation cancelled.");
+                Context?.Finish();
+            });
+        }
+
         private void JoinThreadAndFinish()
         {
-            Dispatcher.BeginInvoke(Finish);
+            Dispatcher.BeginInvoke(() =>
+            {
+                Finish();
+                workerThread = null;
+            });
         }
     }
 }

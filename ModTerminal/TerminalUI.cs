@@ -72,7 +72,8 @@ namespace ModTerminal
         private readonly TextObject output;
         private bool isActive = false;
         private bool isEnabled = false;
-        private bool isCommandRunning = false;
+
+        private Command? runningCommand;
 
         private bool? heldHotkeySetting;
         private bool? heldLockKeybind;
@@ -84,6 +85,8 @@ namespace ModTerminal
         {
             layout = new(true, "ModTerminal UI");
             layout.VisibilityCondition = () => isActive;
+
+            layout.ListenForHotkey(KeyCode.C, OnInterruptHotkey, ModifierKeys.Ctrl);
 
             Panel p = new(layout, textureLoader.GetTexture("Background.png").ToSprite(), "ModTerminal Background")
             {
@@ -159,6 +162,14 @@ namespace ModTerminal
             }
         }
 
+        private void OnInterruptHotkey()
+        {
+            if (runningCommand != null && runningCommand.Context != null && !runningCommand.Context.IsFinished)
+            {
+                runningCommand.Context.RequestCancellation();
+            }
+        }
+
 
         private void OnCommand(TextInput sender, string text)
         {
@@ -224,14 +235,14 @@ namespace ModTerminal
                             matcher.Command.ProgressReported -= Write;
                             matcher.Command.Finished -= Unhook;
                             sender.SelectAndActivate();
-                            isCommandRunning = false;
+                            runningCommand = null;
                         }
 
-                        matcher.Command.ProgressReported += Write;
-                        matcher.Command.Finished += Unhook;
+                        runningCommand = matcher.Command;
+                        runningCommand.ProgressReported += Write;
+                        runningCommand.Finished += Unhook;
                         sender.Deactivate();
-                        isCommandRunning = true;
-                        string? result = matcher.Command.Execute(matcher.CollectedParameters);
+                        string? result = runningCommand.Execute(matcher.CollectedParameters);
                         if (result != null)
                         {
                             Write(result);
@@ -294,7 +305,7 @@ namespace ModTerminal
         [HelpDocumentation("Closes the terminal.")]
         public void Hide()
         {
-            if (isEnabled && !isCommandRunning)
+            if (isEnabled && runningCommand == null)
             {
                 ClearInput();
                 commandBuffer.ResetNavigation();
@@ -353,7 +364,7 @@ namespace ModTerminal
                 string dir = Path.GetDirectoryName(path);
                 Directory.CreateDirectory(dir);
                 FileMode mode = append ? FileMode.Append : FileMode.Create;
-                self.ExecutionContext?.Report($"Starting logging to {path}");
+                self.Context?.Report($"Starting logging to {path}");
 
                 FileStream fs = new(path, mode, FileAccess.Write, FileShare.ReadWrite);
                 fileLogger = new(fs, Encoding.UTF8) { AutoFlush = true };

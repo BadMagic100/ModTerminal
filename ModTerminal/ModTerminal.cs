@@ -21,7 +21,7 @@ namespace ModTerminal
     {
         public static void DoCommand(Command self)
         {
-            if (self.ExecutionContext == null)
+            if (self.Context == null)
             {
                 return;
             }
@@ -29,10 +29,10 @@ namespace ModTerminal
             for (int i = 0; i < 5; i++)
             {
                 Thread.Sleep(5000);
-                self.ExecutionContext.Report("Working...");
+                self.Context.Report("Working...");
             }
-            self.ExecutionContext.Report("Done");
-            self.ExecutionContext.Finish();
+            self.Context.Report("Done");
+            self.Context.Finish();
         }
     }
 

@@ -15,6 +15,8 @@ namespace ModTerminal.Commands
 
         public event Action? Finished;
 
+        public event Action? CancellationRequested;
+
         public ExecutionContext()
         {
             StartTime = DateTime.UtcNow;
@@ -24,7 +26,7 @@ namespace ModTerminal.Commands
         {
             if (IsFinished)
             {
-                throw new InvalidOperationException("Cannot finish an already-finished execution context");
+                throw new InvalidOperationException("Cannot finish an already-finished execution");
             }
             EndTime = DateTime.UtcNow;
             IsFinished = true;
@@ -38,6 +40,15 @@ namespace ModTerminal.Commands
                 throw new InvalidOperationException("Cannot report progress on a finished execution");
             }
             ProgressChanged?.Invoke(value);
+        }
+
+        public void RequestCancellation()
+        {
+            if (IsFinished)
+            {
+                throw new InvalidOperationException("Cannot cancel a completed execution context");
+            }
+            CancellationRequested?.Invoke();
         }
     }
 }

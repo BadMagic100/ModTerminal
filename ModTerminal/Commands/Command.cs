@@ -18,7 +18,7 @@ namespace ModTerminal.Commands
         protected readonly bool HasResult;
         public readonly MethodInfo Method;
 
-        public ExecutionContext? ExecutionContext { get; protected set; }
+        public ExecutionContext? Context { get; protected set; }
 
         public Command(string commandName, Delegate exec)
         {
@@ -72,10 +72,10 @@ namespace ModTerminal.Commands
 
         internal virtual string? Execute(object?[] args)
         {
-            ExecutionContext = new ExecutionContext();
-            ExecutionContext.ProgressChanged += ReportProgress;
+            Context = new ExecutionContext();
+            Context.ProgressChanged += ReportProgress;
             object result = Delegate.DynamicInvoke(args);
-            ExecutionContext.Finish();
+            Context.Finish();
 
             Finish();
 
@@ -93,13 +93,13 @@ namespace ModTerminal.Commands
 
         protected void Finish()
         {
-            if (ExecutionContext == null || !ExecutionContext.IsFinished)
+            if (Context == null || !Context.IsFinished)
             {
                 throw new InvalidOperationException("Cannot finish a command before its execution context has finished!");
             }
 
             Finished?.Invoke();
-            ExecutionContext = null;
+            Context = null;
         }
     }
 }
