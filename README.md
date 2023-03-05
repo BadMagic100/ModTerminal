@@ -29,7 +29,15 @@ This mod comes included with several built-in commands. Use the `listcommands` a
 ## Developers
 
 Developers can add their own commands to the terminal. Note that if you don't need parameters, it's usually better to use a DebugMod keybind.
-To add a command, simply call `CommandTable.RegisterCommand`. This mod uses its own API; there are several usage examples [here](https://github.com/BadMagic100/ModTerminal/blob/4b7dcbacc9553b3b5549f66e1fcbe0bdbbb02f57/ModTerminal/ModTerminal.cs#L50-L60).
+To add a command, simply call `CommandTable.RegisterCommand`. You may also use `CommandTable.RegisterGroup` to create groups of commands.
+This mod uses its own API; there are several usage examples [here](https://github.com/BadMagic100/ModTerminal/blob/master/ModTerminal/ModTerminal.cs).
 
 You can add documentation to your command by using the `[HelpDocumentation]` attribute. This attribute can be applied to both methods and parameters.
 Documentation about the name and type of parameters is inferred automatically; any provided documentation serves only as additional description.
+
+You can convert non-standard parameters using the `[ParameterConverter]` attribute. This attribute is applied to parameters to control how values
+are converted.
+
+Command methods can take a Command instance as their first parameter to access metadata about themselves and their current execution.
+This is particularly pertinent for long-running commands, which may use `AsyncCommand` in tandem with the command's execution context
+to report progress and completion without blocking the UI thread and freezing the game.
