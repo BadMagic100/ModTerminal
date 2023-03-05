@@ -85,6 +85,7 @@ namespace ModTerminal
 
             PrimaryCommandTable.RegisterCommand(new Command("clear", TerminalUI.Instance.Clear));
             PrimaryCommandTable.RegisterCommand(new Command("exit", TerminalUI.Instance.Hide));
+            PrimaryCommandTable.RegisterCommand(new Command("alias", TerminalUI.Instance.SetAlias));
             PrimaryCommandTable.RegisterCommand(new Command("startlog", TerminalUI.Instance.StartLogging));
             PrimaryCommandTable.RegisterCommand(new Command("stoplog", TerminalUI.Instance.StopLogging));
             PrimaryCommandTable.RegisterCommand(new Command("givecharm", BuiltInCommands.GiveCharm));

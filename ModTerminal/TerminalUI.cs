@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -80,6 +81,8 @@ namespace ModTerminal
 
         private readonly CommandBuffer commandBuffer = new();
         private StreamWriter? fileLogger;
+
+        private Dictionary<string, string> aliasTable = new();
 
         private TerminalUI()
         {
@@ -177,10 +180,19 @@ namespace ModTerminal
             if (!string.IsNullOrWhiteSpace(text.Trim()))
             {
                 commandBuffer.Add(text);
+                Write("> " + text.Trim());
+
                 LoggingErrorReporter errorReporter = new();
                 CommandMatcher matcher = new(ModTerminalMod.Instance.PrimaryCommandTable);
 
-                AntlrInputStream str = new(text);
+                KeyValuePair<string, string> alias = aliasTable.FirstOrDefault(a => text.TrimStart().StartsWith(a.Key));
+                string transformedText = text;
+                if (alias.Key != null && alias.Value != null)
+                {
+                    transformedText = Regex.Replace(text, @"^\s*" + Regex.Escape(alias.Key), alias.Value);
+                }
+
+                AntlrInputStream str = new(transformedText);
                 TerminalCommandLexer lexer = new(str);
                 lexer.AddErrorListener(errorReporter);
                 CommonTokenStream tokens = new(lexer);
@@ -188,8 +200,6 @@ namespace ModTerminal
                 parser.AddErrorListener(errorReporter);
                 ParseTreeWalker walker = new();
                 walker.Walk(matcher, parser.command());
-
-                Write("> " + text.Trim());
 
                 // if there were any syntactic or semantic errors, we won't be able to invoke
                 if (errorReporter.CollectedSyntaxErrors.Any())
@@ -349,6 +359,21 @@ namespace ModTerminal
         {
             Hide();
             isEnabled = false;
+        }
+
+        [HelpDocumentation("Adds or overwrites a Linux-style command alias.")]
+        public string SetAlias(
+            [HelpDocumentation("The new alias. Must be a single word.")] string alias,
+            [HelpDocumentation("The command fragment to replace the alias with.")] string commandFragment
+        )
+        {
+            if (" \r\n\t".Any(alias.Contains))
+            {
+                return "Aliases may not contain any whitespace.";
+            }
+
+            aliasTable[alias] = commandFragment;
+            return $"alias {alias}={commandFragment}";
         }
 
         [HelpDocumentation("Starts logging terminal content to a file.")]
