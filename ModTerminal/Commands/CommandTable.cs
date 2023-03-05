@@ -1,9 +1,9 @@
-﻿using System;
+﻿using ModTerminal.Processing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using ModTerminal.Processing;
 
 namespace ModTerminal.Commands
 {
@@ -71,12 +71,12 @@ namespace ModTerminal.Commands
 
         [HelpDocumentation("Lists available commands.")]
         private string ListCommand(
-            [HelpDocumentation("The zero-indexed page number to start on.")] uint page = 0
-            )
+            [HelpDocumentation("The zero-indexed page number to start on.")] uint page = 0,
+            [HelpDocumentation("The number of commands to display per page.")] uint pageSize = 5
+        )
         {
-            const int PAGE_SIZE = 5;
-            int first = (int)page * PAGE_SIZE + 1;
-            int last = Math.Min((int)(page + 1) * PAGE_SIZE, commands.Count);
+            int first = (int)(page * pageSize + 1);
+            int last = Math.Min((int)((page + 1) * pageSize), commands.Count);
             int count = commands.Count;
             if (first > count)
             {
@@ -84,7 +84,7 @@ namespace ModTerminal.Commands
             }
 
             StringBuilder b = new($"Showing commands {first}-{last} of {count}:\n");
-            foreach (string commandName in commands.Keys.OrderBy(k => k).Skip(first - 1).Take(PAGE_SIZE))
+            foreach (string commandName in commands.Keys.OrderBy(k => k).Skip(first - 1).Take((int)pageSize))
             {
                 b.Append("  - ");
                 b.Append($"{Prefix}{commandName}");
