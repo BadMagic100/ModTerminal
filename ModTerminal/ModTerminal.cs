@@ -56,12 +56,7 @@ namespace ModTerminal
 
         public readonly CommandTable PrimaryCommandTable = new(
             "Use 'listcommands' to see available commands, and 'help <command>' to see help for a given command. "
-                    + "Commands may take any number of parameters as specified by their help documentation. Command parameters "
-                    + "can be specified in order, or by specifying the parameters in 'name=value' syntax. Ordered parameters cannot "
-                    + "be used after a named parameter has been used. Some parameters take a variable amount of parameters. For "
-                    + "these commands, the last parameter is listed as an array in the help documentation and you can provide any "
-                    + "number of values, including zero, by adding additional ordered parameters. Named parameters cannot be used "
-                    + "for these commands.");
+                    + "If you're not sure how to get started, see this mod's readme to learn about command syntax.");
 
         public ModTerminalMod() : base("ModTerminal")
         {

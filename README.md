@@ -7,17 +7,22 @@ A Hollow Knight DebugMod addon which provides a text-based terminal for commands
 To use the mod, start by configuring a keybind in DebugMod. The "Toggle Terminal" bind appears under the "Misc" category.
 
 After toggling the console open, you can type commands and press enter to submit. Commands can take any number of parameters.
-Parameters are separated by spaces, and can be provided in one of two ways:
+Parameters are generally separated by whitespace, which is ignored in most circumstances, and can be provided in one of two ways:
 
 * Ordered parameters, or positional parameters, are provided simply by entering a value in the same order it appears in the help
   documentation. Ordered parameters must always be provided at the beginning of the command, and cannot be provided after a named
   parameter has been provided.
-* Named parameters can be provided in any order, using the syntax `name=value`. Note the lack of spaces. The help documentation for
-  each command includes the names of each parameter. This style of input is typically used to skip over optional parameters.
+* Named parameters can be provided in any order, using the syntax `name=value`, `--name=value`, or `--name value`. The help 
+  documentation for each command includes the names of each parameter. This style of input is typically used to skip over optional
+  parameters.
 
 Some commands can take a variable number of parameters. This is accomplished by using an array as the last parameter. You can provide
-any number of values, including zero, as ordered parameters in this slot. Additional values will also be included. Note that because
-array parameters are positional, you cannot use named parameters for these commands.
+any number of values, including zero, as ordered parameters in this slot. You may use either named or positional syntax to provide
+values; if using named parameters, simply use the same parameter name multiple times.
+
+In many situations, string values may be provided as normal. However, if your desired value includes whitespace or certain special
+characters, you can use string literal syntax to craft your string value, `"like this"`. You can use the backslash character `\` to
+escape newlines `\n`, quotes `\"`, and other backslashes `\\` within these strings.
 
 This mod comes included with several built-in commands. Use the `listcommands` and `help` commands to view their documentation.
 
